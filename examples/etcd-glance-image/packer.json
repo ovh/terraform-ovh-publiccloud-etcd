@@ -1,0 +1,49 @@
+{
+    "min_packer_version": "0.12.0",
+    "variables": {
+        "identity_endpoint": "{{env `OS_AUTH_URL`}}",
+        "region": "{{env `OS_REGION_NAME`}}",
+        "ext_net_id": "",
+        "cfssl_version": "R1.2",
+        "cfssl_sha256sum": "eb34ab2179e0b67c29fd55f52422a94fe751527b06a403a79325fed7cf0145bd",
+        "cfssl_install_dir" : "install-cfssl-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
+        "etcd_version": "3.3.0",
+        "etcd_sha256sum": "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc",
+        "ssh_username": "core",
+        "source_image_name": "CoreOS Stable"
+    },
+    "builders": [
+        {
+            "type": "openstack",
+            "identity_endpoint": "{{user `identity_endpoint`}}",
+            "region": "{{user `region`}}",
+            "ssh_username": "{{user `ssh_username`}}",
+            "image_name": "{{user `source_image_name`}} Cfssl",
+            "source_image_name": "{{user `source_image_name`}}",
+            "ssh_ip_version": "4",
+            "flavor": "s1-2",
+            "networks": ["{{user `ext_net_id`}}"]
+        }
+    ],
+    "provisioners": [
+        {
+        "type": "file",
+        "source": "{{template_dir}}/../../modules",
+        "destination": "/tmp"
+        },
+        {
+        "type": "file",
+        "source": "{{template_dir}}/{{user `cfssl_install_dir`}}",
+        "destination": "/tmp/modules"
+        },
+        {
+        "type": "shell",
+        "inline": [
+            "/tmp/modules/install-etcd/install-etcd --version {{user `etcd_version`}} --sha256sum {{user `etcd_sha256sum`}}",
+            "/tmp/modules/install-cfssl/install-cfssl --version {{user `cfssl_version`}} --sha256sum {{user `cfssl_sha256sum`}}",
+            "sudo rm -Rf /var/lib/cloud/* /tmp/* /etc/machine-id",
+            "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
+        ],
+        "pause_before": "30s"
+    }]
+}

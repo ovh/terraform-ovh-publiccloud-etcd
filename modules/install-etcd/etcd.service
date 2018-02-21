@@ -1,0 +1,45 @@
+[Unit]
+Description=etcd (System Application Container)
+Documentation=https://github.com/coreos/etcd
+Wants=network-online.target network.target etcd-get-certs.service
+After=network-online.target
+Conflicts=etcd-member.service
+Conflicts=etcd2.service
+
+ConditionFileNotEmpty=/etc/sysconfig/etcd.conf
+
+[Service]
+User=etcd
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=0
+LimitNOFILE=40000
+Type=notify
+
+Environment=ETCD_NAME=etcd
+Environment=ETCD_SSL_DIR=/opt/etcd/certs
+Environment=ETCD_DATA_DIR=/opt/etcd/data
+Environment=ETCD_INITIAL_CLUSTER_TOKEN=etcd
+Environment=ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+Environment=ETCD_ADVERTISE_CLIENT_URLS=http://127.0.0.1:2379
+Environment=ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS=http://127.0.0.1:2380
+Environment=ETCD_INITIAL_CLUSTER=etcd=http://127.0.0.1:2380
+Environment=ETCD_STRICT_RECONFIG_CHECK=true
+Environment=ETCD_TRUSTED_CA_FILE=
+Environment=ETCD_CERT_FILE=
+Environment=ETCD_KEY_FILE=
+Environment=ETCD_CLIENT_CERT_AUTH=false
+Environment=ETCD_PEER_TRUSTED_CA_FILE=
+Environment=ETCD_PEER_CERT_FILE=
+Environment=ETCD_PEER_KEY_FILE=
+Environment=ETCD_PEER_CLIENT_CERT_AUTH=false
+
+EnvironmentFile=/opt/etcd/bin/defaults.conf
+EnvironmentFile=/etc/sysconfig/etcd.conf
+
+ExecStartPre=/usr/bin/mkdir --parents $ETCD_DATA_DIR
+ExecStart=/opt/etcd/bin/etcd
+
+[Install]
+WantedBy=multi-user.target

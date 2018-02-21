@@ -1,0 +1,220 @@
+#!/bin/bash
+# This script can be used to install Etcd and its dependencies. This script has been tested with the CentOS 7 operating system.
+
+set -e
+
+readonly DEFAULT_INSTALL_PATH="/opt/etcd"
+readonly DEFAULT_ETCD_USER="etcd"
+
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_NAME="$(basename "$0")"
+
+function print_usage {
+  echo
+  echo "Usage: install-etcd [OPTIONS]"
+  echo
+  echo "This script can be used to install Etcd and its dependencies. This script has been tested with CentOS 7."
+  echo
+  echo "Options:"
+  echo
+  echo -e "  --version\t\tThe version of Etcd to install. Required."
+  echo -e "  --sha256sum\t\tThe sha256 checksum of the Etcd binary. Required."
+  echo -e "  --path\t\tThe path where Etcd should be installed. Optional. Default: $DEFAULT_INSTALL_PATH."
+  echo -e "  --user\t\tThe user who will own the Etcd install directories. Optional. Default: $DEFAULT_ETCD_USER."
+  echo
+  echo "Example:"
+  echo
+  echo "  install-etcd --version 3.3.0"
+}
+
+function log {
+  local readonly level="$1"
+  local readonly message="$2"
+  local readonly timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  >&2 echo -e "${timestamp} [${level}] [$SCRIPT_NAME] ${message}"
+}
+
+function log_info {
+  local readonly message="$1"
+  log "INFO" "$message"
+}
+
+function log_warn {
+  local readonly message="$1"
+  log "WARN" "$message"
+}
+
+function log_error {
+  local readonly message="$1"
+  log "ERROR" "$message"
+}
+
+function assert_not_empty {
+  local readonly arg_name="$1"
+  local readonly arg_value="$2"
+
+  if [[ -z "$arg_value" ]]; then
+    log_error "The value for '$arg_name' cannot be empty"
+    print_usage
+    exit 1
+  fi
+}
+
+# Install steps are based on: http://stackoverflow.com/a/31576473/483528
+function setup_systemd_services {
+    local readonly username="$1"
+    sudo cp "$SCRIPT_DIR/etcd.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/etcd.path" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/etcd-get-certs.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/etcd-restart.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/etcd-restart.path" "/etc/systemd/system/"
+
+    sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd.service"
+    sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd.service"
+    sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd-get-certs.service"
+    sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd-get-certs.service"
+
+    sudo systemctl enable etcd.path etcd-get-certs.service etcd-restart.path
+    sudo systemctl start etcd.path etcd-restart.path
+
+    # disable firewalld. TODO: make a proper setup for etcd
+    if systemctl list-unit-files --all | grep -q firewalld.service; then
+        sudo systemctl stop firewalld
+        sudo systemctl mask firewalld
+    fi
+}
+
+function install_dependencies {
+  log_info "Installing dependencies"
+
+  if [ -n "$(command -v yum)" ]; then
+      # curl to download or interact with apis,
+      # ncat to test tcp connections
+      # bind-utils to test dns names
+      # jq to play with json
+      sudo yum install -y curl nmap-ncat bind-utils jq
+  elif [ -n "$(command -v coreos-install)" ]; then
+       log_info "Nothing to do for coreos"
+  else
+      log_error "Could not find yum. Cannot install dependencies on this OS."
+      exit 1
+  fi
+}
+
+function user_exists {
+  local readonly username="$1"
+  id "$username" >/dev/null 2>&1
+}
+
+function create_etcd_user {
+  local readonly username="$1"
+
+  if $(user_exists "$username"); then
+    echo "User $username already exists. Will not create again."
+  else
+    log_info "Creating user named $username"
+    sudo useradd "$username"
+  fi
+}
+
+function create_etcd_install_paths {
+  local readonly path="$1"
+  local readonly username="$2"
+
+  log_info "Creating install dirs for Etcd at $path"
+  sudo mkdir -p "$path/bin"
+  sudo mkdir -p "$path/data"
+  sudo mkdir -p "$path/config"
+
+  log_info "Changing ownership of $path to $username"
+  sudo chown -R "$username:$username" "$path"
+}
+
+function install_binaries {
+  local readonly version="$1"
+  local readonly sha256sum="$2"
+  local readonly path="$3"
+  local readonly username="$4"
+
+  local readonly url="https://github.com/coreos/etcd/releases/download/v${version}/etcd-v${version}-linux-amd64.tar.gz"
+  local readonly download_path="/tmp/etcd-v${version}-linux_amd64.tar.gz"
+  local readonly bin_dir="$path/bin"
+
+  log_info "Downloading Etcd $version from $url to $download_path"
+  curl -L -o "$download_path" "$url"
+  if [ "$sha256sum" != "$(sha256sum "$download_path" | awk '{print $1}')" ]; then
+      log_error "dl binary checksum error $sha256sum != $(sha256sum "$download_path" | awk '{print $1}')"
+      exit 1
+  else
+      log_info "Extracting etcd,etcdctl binaries to $bin_dir/"
+      sudo tar -xzf "${download_path}" --strip=1 -C "${bin_dir}" "etcd-v${version}-linux-amd64"/{etcd,etcdctl}
+  fi
+
+  log_info "Copying scripts to $bin_dir/"
+  sudo cp "$SCRIPT_DIR/defaults.conf" \
+       "$SCRIPT_DIR/etcd-get-cert" \
+       "$SCRIPT_DIR/functions.sh" "$bin_dir/"
+
+  sudo sed -i -e "s,/opt/etcd,$path,g" "$bin_dir/defaults.conf"
+  sudo chown -R "$username:$username" "$path"
+  sudo chmod a+x "$bin_dir/etcd" \
+       "$bin_dir/etcdctl" \
+       "$bin_dir/etcd-get-cert"
+}
+
+function install {
+  local version=""
+  local path="$DEFAULT_INSTALL_PATH"
+  local user="$DEFAULT_ETCD_USER"
+
+  while [[ $# > 0 ]]; do
+    local key="$1"
+
+    case "$key" in
+      --version)
+        version="$2"
+        shift
+        ;;
+      --sha256sum)
+          sha256sum="$2"
+          shift
+          ;;
+      --path)
+        path="$2"
+        shift
+        ;;
+      --user)
+        user="$2"
+        shift
+        ;;
+      --help)
+        print_usage
+        exit
+        ;;
+      *)
+        log_error "Unrecognized argument: $key"
+        print_usage
+        exit 1
+        ;;
+    esac
+
+    shift
+  done
+
+  assert_not_empty "--version" "$version"
+  assert_not_empty "--sha256sum" "$sha256sum"
+  assert_not_empty "--path" "$path"
+  assert_not_empty "--user" "$user"
+
+  log_info "Starting Etcd install"
+
+  install_dependencies
+  create_etcd_user "$user"
+  create_etcd_install_paths "$path" "$user"
+  install_binaries "$version" "$sha256sum" "$path" "$user"
+  setup_systemd_services "$user"
+
+  log_info "Etcd install complete!"
+}
+
+install "$@"

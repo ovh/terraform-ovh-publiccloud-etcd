@@ -1,0 +1,5 @@
+[Path]
+PathChanged=/opt/etcd/certs
+
+[Install]
+WantedBy=multi-user.target
