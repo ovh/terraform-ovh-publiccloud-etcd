@@ -18,6 +18,7 @@ module "etcd" {
   associate_private_ipv4    = false
   cfssl                     = true
 }
+```
 
 ## Examples
 
