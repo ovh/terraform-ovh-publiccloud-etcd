@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 DIR=${1:-$(dirname $0)/../examples/public-server}
 REGION=${2:-$OS_REGION_NAME}
@@ -36,20 +36,23 @@ fi
 (cd "${DIR}" && terraform init \
 	   && terraform apply -auto-approve -var os_region_name="${REGION}")
 EXIT_APPLY=$?
+echo "apply exited with $EXIT_APPLY" >&2
 
 # if terraform went well run test
 if [ "${EXIT_APPLY}" == 0 ]; then
     test_tf
     EXIT_APPLY=$?
+    echo "test after apply exited with $EXIT_APPLY" >&2
 fi
 
 # if destroy mode, clean terraform setup
 if [ "${DESTROY}" == "1" ]; then
     (cd "${DIR}" && terraform destroy -force -var os_region_name="${REGION}" \
-        && rm -Rf .terraform *.tfstate*)
+         && rm -Rf .terraform *.tfstate*)
     EXIT_DESTROY=$?
 else
     EXIT_DESTROY=0
 fi
+echo "destroy exited with $EXIT_DESTROY" >&2
 
 exit $((EXIT_APPLY+EXIT_DESTROY))

@@ -11,7 +11,8 @@ EXIT=0
 for d in ${DIRS[@]}; do
     for r in $REGIONS; do
         $(dirname $0)/runtest.sh "$(dirname $0)/../examples/$d" "$r"
-        EXIT=$((EXIT+$?))
+        echo "test $d exited with $exit_test" >&2
+        EXIT=$((EXIT+exit_test))
     done
 done
 
