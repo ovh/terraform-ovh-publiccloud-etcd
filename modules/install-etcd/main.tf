@@ -23,7 +23,7 @@ resource "null_resource" "post_install_etcd" {
 
   provisioner "remote-exec" {
     inline = [
-      "/bin/sh -x /tmp/install-etcd/install-etcd --path ${var.install_dir} --version ${var.etcd_version} --sha256sum ${var.etcd_sha256sum}",
+      "/bin/sh /tmp/install-etcd/install-etcd --path ${var.install_dir} --version ${var.etcd_version} --sha256sum ${var.etcd_sha256sum}",
       "sudo systemctl restart etcd.path",
     ]
   }
