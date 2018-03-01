@@ -56,7 +56,7 @@ ca-certs:
   trusted:
     - ${var.cacert}
 write_files:
-  ${var.cfssl && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
+  ${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
   - path: /etc/sysconfig/etcd.conf
     content: |
       ${indent(6, element(data.template_file.conf.*.rendered, count.index))}
