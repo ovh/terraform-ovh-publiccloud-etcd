@@ -35,10 +35,10 @@ variable "ssh_bastion_user" {
 
 variable "etcd_version" {
   description = "The version of etcd to install with the post installation script if `post_install_module` is set to true"
-  default     = "3.3.0"
+  default     = "3.3.1"
 }
 
 variable "etcd_sha256sum" {
   description = "The sha256 checksum of the etcd binary to install with the post installation script if `post_install_module` is set to true"
-  default     = "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc"
+  default     = "dc6d74e364ece87c34c86a997b90016ab6ea8845fd13fdf8c520afdf796b000d"
 }
