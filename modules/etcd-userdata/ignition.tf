@@ -100,8 +100,8 @@ data "ignition_config" "coreos" {
   files = [
     "${data.ignition_file.cacert.*.id}",
     "${element(data.ignition_file.etcd-conf.*.id, count.index)}",
-    "${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? data.ignition_file.cfssl-cacert.id : ""}",
-    "${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? data.ignition_file.cfssl-cakey.id : ""}",
+    "${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 && var.cacert != "" ? data.ignition_file.cfssl-cacert.id : ""}",
+    "${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 && var.cacert_key != ""? data.ignition_file.cfssl-cakey.id : ""}",
     "${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? element(data.ignition_file.cfssl-conf.*.id, 0) : ""}",
   ]
 }
