@@ -8,6 +8,8 @@ readonly DEFAULT_ETCD_USER="etcd"
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_NAME="$(basename "$0")"
+readonly DEFAULT_VERSION="3.3.1"
+readonly DEFAULT_SHA256SUM="dc6d74e364ece87c34c86a997b90016ab6ea8845fd13fdf8c520afdf796b000d"
 
 function print_usage {
   echo
@@ -166,6 +168,8 @@ function install {
   local version=""
   local path="$DEFAULT_INSTALL_PATH"
   local user="$DEFAULT_ETCD_USER"
+  local version="$DEFAULT_VERSION"
+  local sha256sum="$DEFAULT_SHA256SUM"
 
   while [[ $# > 0 ]]; do
     local key="$1"
