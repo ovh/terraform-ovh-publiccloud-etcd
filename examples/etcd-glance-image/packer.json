@@ -4,9 +4,8 @@
         "identity_endpoint": "{{env `OS_AUTH_URL`}}",
         "region": "{{env `OS_REGION_NAME`}}",
         "ext_net_id": "",
-        "cfssl_version": "R1.2",
-        "cfssl_sha256sum": "eb34ab2179e0b67c29fd55f52422a94fe751527b06a403a79325fed7cf0145bd",
-        "cfssl_install_dir" : "install-cfssl-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
+        "module_cfssl_version": "0.1.3",
+        "module_cfssl_sha256sum": "5051401353ba9eaffe3871f5e4ebd2f54915204bbec4d9b6735eebc735dc6879",
         "etcd_version": "3.3.0",
         "etcd_sha256sum": "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc",
         "ssh_username": "core",
@@ -18,7 +17,7 @@
             "identity_endpoint": "{{user `identity_endpoint`}}",
             "region": "{{user `region`}}",
             "ssh_username": "{{user `ssh_username`}}",
-            "image_name": "{{user `source_image_name`}} Cfssl",
+            "image_name": "{{user `source_image_name`}} Etcd",
             "source_image_name": "{{user `source_image_name`}}",
             "ssh_ip_version": "4",
             "flavor": "s1-2",
@@ -27,23 +26,31 @@
     ],
     "provisioners": [
         {
-        "type": "file",
-        "source": "{{template_dir}}/../../modules",
-        "destination": "/tmp"
+            "type": "file",
+            "source": "{{template_dir}}/../../modules",
+            "destination": "/tmp"
         },
         {
-        "type": "file",
-        "source": "{{template_dir}}/{{user `cfssl_install_dir`}}",
-        "destination": "/tmp/modules"
+            "type": "shell",
+            "inline": [
+                "/tmp/modules/install-etcd/install-etcd"
+            ]
         },
         {
-        "type": "shell",
-        "inline": [
-            "/tmp/modules/install-etcd/install-etcd --version {{user `etcd_version`}} --sha256sum {{user `etcd_sha256sum`}}",
-            "/tmp/modules/install-cfssl/install-cfssl --version {{user `cfssl_version`}} --sha256sum {{user `cfssl_sha256sum`}}",
-            "sudo rm -Rf /var/lib/cloud/* /tmp/* /etc/machine-id",
-            "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
-        ],
-        "pause_before": "30s"
-    }]
+            "type": "shell",
+            "inline": [
+                "echo '{{user `module_cfssl_sha256sum`}} -' > /tmp/modules/cfssl.sum.txt",
+                "curl -Lfs https://github.com/ovh/terraform-ovh-publiccloud-cfssl/archive/v{{user `module_cfssl_version`}}.tar.gz | tee /tmp/modules/cfssl.tar.gz | sha256sum -c /tmp/modules/cfssl.sum.txt",
+                "tar -xzf /tmp/modules/cfssl.tar.gz --strip=2 -C /tmp/modules terraform-ovh-publiccloud-cfssl-{{user `module_cfssl_version`}}/modules/install-cfssl",
+                "/tmp/modules/install-cfssl/install-cfssl"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo cleaning server files > /dev/stderr",
+                "sudo rm -Rf /var/lib/cloud/* /tmp/modules /etc/machine-id /etc/ssh/ssh_host*key*",
+                "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
+            ]
+        }]
 }
