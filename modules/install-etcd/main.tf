@@ -8,10 +8,8 @@ resource "null_resource" "post_install_etcd" {
   connection {
     host                = "${element(var.ipv4_addrs, count.index)}"
     user                = "${var.ssh_user}"
-    private_key         = "${var.ssh_private_key}"
     bastion_host        = "${var.ssh_bastion_host}"
     bastion_user        = "${var.ssh_bastion_user}"
-    bastion_private_key = "${var.ssh_bastion_private_key}"
   }
 
   provisioner "remote-exec" {

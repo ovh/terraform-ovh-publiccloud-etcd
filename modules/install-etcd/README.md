@@ -86,10 +86,8 @@ module "provision_etcd" {
   triggers                = ["A list of trigger values"]
   ipv4_addrs              = ["192.168.1.200", "..."]
   ssh_user                = "centos"
-  ssh_private_key         = "${file("~/.ssh/id_rsa")}"
   ssh_bastion_host        = "34.234.13.XX"
   ssh_bastion_user        = "core"
-  ssh_bastion_private_key = "${file("~/.ssh/id_rsa")}"
 }
 ```
 

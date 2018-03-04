@@ -187,10 +187,8 @@ module "post_install_cfssl" {
   triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id), 0)}"]
   ipv4_addrs              = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4), 0)}"]
   ssh_user                = "${var.ssh_user}"
-  ssh_private_key         = "${var.ssh_private_key}"
   ssh_bastion_host        = "${var.ssh_bastion_host}"
   ssh_bastion_user        = "${var.ssh_bastion_user}"
-  ssh_bastion_private_key = "${var.ssh_bastion_private_key}"
 }
 
 module "post_install_etcd" {
@@ -199,10 +197,8 @@ module "post_install_etcd" {
   triggers                = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id)}"]
   ipv4_addrs              = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4)}"]
   ssh_user                = "${var.ssh_user}"
-  ssh_private_key         = "${var.ssh_private_key}"
   ssh_bastion_host        = "${var.ssh_bastion_host}"
   ssh_bastion_user        = "${var.ssh_bastion_user}"
-  ssh_bastion_private_key = "${var.ssh_bastion_private_key}"
 }
 
 # This is somekind of a hack to ensure that when instances ids are output and made

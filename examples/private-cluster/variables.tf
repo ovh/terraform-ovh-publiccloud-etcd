@@ -33,11 +33,6 @@ variable "count" {
   default     = 3
 }
 
-variable "private_sshkey" {
-  description = "Key to use to ssh connect"
-  default     = "~/.ssh/id_rsa"
-}
-
 variable "public_sshkey" {
   description = "Key to use to ssh connect"
   default     = "~/.ssh/id_rsa.pub"
