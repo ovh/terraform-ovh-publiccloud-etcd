@@ -23,6 +23,9 @@ test_tf(){
     return $res
 }
 
+if [ ! -f "$SSH_AUTH_SOCK" ]; then
+    eval $(ssh-agent) && ssh-add ${TEST_SSH_PRIVATE_KEY:-$HOME/.ssh/id_rsa}
+fi
 
 # if destroy mode, clean previous terraform setup
 if [ "${CLEAN}" == "1" ]; then

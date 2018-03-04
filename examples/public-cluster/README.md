@@ -25,7 +25,7 @@ You can add the `os_tenant_id` in `terraform.tfvars` or source your `openrc` cre
 $ ssh-keygen -f terraform_ssh_key -q -N ""
 ```
 
-If you generate a new keypair, put its path in `terraform.tfvars` undar variables `private_sshkey` and `public_sshkey`.
+If you generate a new keypair, put its path in `terraform.tfvars` undar variable `public_sshkey`.
 
 ## Run it
 

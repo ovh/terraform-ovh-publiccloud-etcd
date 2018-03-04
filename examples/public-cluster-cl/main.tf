@@ -55,7 +55,6 @@ module "etcd" {
   ignition_mode             = true
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
   ssh_user                  = "core"
-  ssh_private_key           = "${file(var.private_sshkey)}"
   post_install_modules      = true
   associate_public_ipv4     = true
   associate_private_ipv4    = false
