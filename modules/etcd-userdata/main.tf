@@ -4,7 +4,7 @@ locals {
 
 module "cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/cfssl-userdata"
-  version = ">= 0.1.2"
+  version = ">= 0.1.3"
 
   ignition_mode        = "${var.ignition_mode}"
   cidr                 = "${var.cidr}"
@@ -15,8 +15,7 @@ module "cfssl" {
   ca_validity_period   = "${var.cfssl_ca_validity_period}"
   cert_validity_period = "${var.cfssl_cert_validity_period}"
   cn                   = "${var.domain}"
-  c                    = "${var.region}"
-  l                    = "${var.datacenter}"
+  c                    = "${var.datacenter}"
   o                    = "${var.name}"
   key_algo             = "${var.cfssl_key_algo}"
   key_size             = "${var.cfssl_key_size}"

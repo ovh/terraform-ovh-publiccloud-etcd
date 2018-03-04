@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=${1:-$(dirname $0)/../examples/public-server}
+DIR=${1:-$(dirname $0)/../examples/public-cluster}
 REGION=${2:-$OS_REGION_NAME}
 DESTROY=${3:-1}
 CLEAN=${4:-1}

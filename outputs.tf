@@ -3,7 +3,7 @@ output "public_security_group_id" {
 }
 
 output "private_ipv4_addrs" {
-  value = ["${data.template_file.ipv4_addrs.*.rendered}"]
+  value = ["${data.template_file.private_ipv4_addrs.*.rendered}"]
 }
 
 output "public_ipv4_addrs" {

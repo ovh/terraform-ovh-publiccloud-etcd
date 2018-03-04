@@ -48,7 +48,6 @@ module "etcd" {
   source                    = "../.."
   name                      = "${var.name}"
   count                     = "${var.count}"
-  region                    = "${var.os_region_name}"
   ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
   image_name                = "CoreOS Stable"
   flavor_name               = "${var.os_flavor_name}"

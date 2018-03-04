@@ -26,7 +26,7 @@ provider "ignition" {
 }
 
 data "http" "myip" {
-  url = "https://ifconfig.ovh/"
+  url = "https://api.ipify.org"
 }
 
 resource "openstack_networking_secgroup_v2" "sg" {
@@ -48,14 +48,12 @@ module "etcd" {
   source                    = "../.."
   name                      = "${var.name}"
   count                     = "${var.count}"
-  region                    = "${var.os_region_name}"
-  ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
+   ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
   image_name                = "CoreOS Stable Etcd"
   flavor_name               = "${var.os_flavor_name}"
   ignition_mode             = true
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
   ssh_user                  = "core"
-  ssh_private_key           = "${file(var.private_sshkey)}"
   post_install_modules      = false
   associate_public_ipv4     = true
   associate_private_ipv4    = false

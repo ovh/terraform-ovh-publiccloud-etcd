@@ -18,10 +18,6 @@ variable "domain" {
   default     = "local"
 }
 
-variable "region" {
-  description = "The region of the cluster."
-}
-
 variable "datacenter" {
   description = "The datacenter of the cluster."
   default     = ""
