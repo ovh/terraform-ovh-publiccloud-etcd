@@ -1,23 +1,19 @@
-OS_REGION_NAME ?= GRA3
-PACKERBIN ?= $(shell which packer-io || which packer)
-TERRAFORMBIN ?= $(shell which terraform)
+all: coreos centos7
 
-all: centos7 coreos
+coreos:
+	@./build.sh coreos
 
-centos7: terraform.tfstate
-	$(PACKERBIN) build -var region=$(OS_REGION_NAME) \
-								-var source_image_name="Centos 7" \
-                -var ssh_username=centos \
-	           	  -var ext_net_id=$(shell $(TERRAFORMBIN) output ext_net_id) \
-				  packer.json
+centos7:
+	@./build.sh centos7
 
-coreos: terraform.tfstate
-	$(PACKERBIN) build -var region=$(OS_REGION_NAME) \
-	           	  -var ext_net_id=$(shell $(TERRAFORMBIN) output ext_net_id) \
-				  packer.json
+ubuntu1604:
+	@./build.sh ubuntu1604
 
-.terraform:
-	@$(TERRAFORMBIN) init
+publish-coreos:
+	@./publish.sh coreos
 
-terraform.tfstate: .terraform
-	@$(TERRAFORMBIN) apply -var region=$(OS_REGION_NAME) > /dev/null 2>&1
+publish-centos7:
+	@./publish.sh centos7
+
+publish-ubuntu1604:
+	@./publish.sh ubuntu1604

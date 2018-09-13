@@ -47,11 +47,11 @@ module "etcd" {
   name                      = "${var.name}"
   count                     = "${var.count}"
   ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
-  image_name                = "CoreOS Stable Etcd"
+  image_name                = "Ubuntu 16.04 Etcd"
   flavor_name               = "s1-2"
-  ignition_mode             = true
+  ignition_mode             = false
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
-  ssh_user                  = "core"
+  ssh_user                  = "centos"
   post_install_modules      = false
   associate_public_ipv4     = true
   associate_private_ipv4    = false

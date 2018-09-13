@@ -1,5 +1,6 @@
 variable "region" {
   description = "The Openstack region name"
+  default     = ""
 }
 
 variable "cidr" {

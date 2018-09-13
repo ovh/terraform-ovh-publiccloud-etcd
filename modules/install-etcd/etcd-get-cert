@@ -1,3 +1,48 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "$(dirname "$0")/functions.sh"
+
+if [ -z "$CFSSL_ENDPOINT" ]; then
+    log user.info "no cfssl endpoint set. cannot get certs. nothing to do"
+    exit 0
+fi
+
+if [ "$1" == "peer" ] && [ "ETCD_CERT_FILE" == "ETCD_PEER_CERT_FILE" ]; then
+    log user.info "client & peer tls certs target same files. skipping getting new cert for peer"
+    exit 0
+elif [ "$1" == "peer" ]; then
+    ca=${ETCD_PEER_TRUSTED_CA_FILE}
+    cert=${ETCD_PEER_CERT_FILE}
+    key=${ETCD_PEER_KEY_FILE}
+else
+    ca=${ETCD_TRUSTED_CA_FILE}
+    cert=${ETCD_CERT_FILE}
+    key=${ETCD_KEY_FILE}
+fi
+
+if [ -z "${ETCD_NAME}" ]; then
+    export ETCD_NAME="$(getprivipaddr | sed 's/./_/g')"
+fi
+
+# generating new tls certs if there's no certs or existing certs are invalid or older than one hour."
+if [ ! -f "${cert}" ] || find "${cert}" -mmin "+60" | egrep '*' \
+       || ! openssl verify -purpose sslserver -CAfile "${ca}" "${cert}"; then
+    log user.info "generating etcd new certs (either too old, no existent or invalid)"
+    certs_json=$(curl --cacert "${ca}" --connect-timeout 1 --silent --fail \
+                      -d '{ "request": {"hosts":["127.0.0.1", "localhost", "'$(getprivipaddr)'", "'${ETCD_NAME}'.etcd.'${DOMAIN}'", "etcd.'${DOMAIN}'"], "CN": "'${DOMAIN}'" },  "profile": "server"}'\
+                      "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
+
+    if echo "$certs_json" | jq -r '.result.certificate' | openssl verify -purpose sslserver -CAfile "${ca}" 2>/dev/null; then \
+
+        # generating files in temp dir before copying it because a watcher on the directory ETCD_SSL_DIR may interrupt the current process
+        certs_dir_temp=$(mktemp -d)
+        echo "$certs_json" | jq -r '.result.certificate' > "${certs_dir_temp}"/"$(basename "$cert")"
+        echo "$certs_json" | jq -r '.result.private_key' > "${certs_dir_temp}"/"$(basename "$key")"
+        mv "${certs_dir_temp}"/"$(basename "$cert")" "${certs_dir_temp}"/"$(basename "$key")" "$(dirname "$cert")"/ && rmdir "${certs_dir_temp}"
+    else
+        log user.error "error while generating cert. exiting."
+        exit 1
+    fi
+else
+    log user.info "cert is already here and valid"
+fi
