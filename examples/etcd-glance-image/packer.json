@@ -6,8 +6,6 @@
         "ext_net_id": "",
         "module_cfssl_version": "0.1.3",
         "module_cfssl_sha256sum": "5051401353ba9eaffe3871f5e4ebd2f54915204bbec4d9b6735eebc735dc6879",
-        "etcd_version": "3.3.0",
-        "etcd_sha256sum": "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc",
         "ssh_username": "core",
         "source_image_name": "CoreOS Stable"
     },
@@ -52,5 +50,6 @@
                 "sudo rm -Rf /var/lib/cloud/* /tmp/modules /etc/machine-id /etc/ssh/ssh_host*key*",
                 "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
             ]
-        }]
+        }
+    ]
 }

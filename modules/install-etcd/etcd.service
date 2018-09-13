@@ -38,7 +38,7 @@ Environment=ETCD_PEER_CLIENT_CERT_AUTH=false
 EnvironmentFile=/opt/etcd/bin/defaults.conf
 EnvironmentFile=/etc/sysconfig/etcd.conf
 
-ExecStartPre=/usr/bin/mkdir --parents $ETCD_DATA_DIR
+ExecStartPre=/usr/bin/mkdir --parents ${ETCD_DATA_DIR}
 ExecStart=/opt/etcd/bin/etcd
 
 [Install]

@@ -21,7 +21,7 @@ Environment=ETCD_PEER_KEY_FILE=/opt/etcd/certs/cert-key.pem
 
 EnvironmentFile=-/etc/sysconfig/etcd.conf
 
-ExecStartPre=/usr/bin/mkdir --parents $ETCD_SSL_DIR
+ExecStartPre=/usr/bin/mkdir --parents ${ETCD_SSL_DIR}
 ExecStartPre=/bin/sh -c 'curl -k --fail --silent -XPOST -d \'{"label": "primary"}\' $CFSSL_ENDPOINT/api/v1/cfssl/info | jq -r \'.result.certificate\' | tee $ETCD_TRUSTED_CA_FILE'
 ExecStartPre=/bin/sh -c 'curl -k --fail --silent -XPOST -d \'{"label": "primary"}\' $CFSSL_ENDPOINT/api/v1/cfssl/info | jq -r \'.result.certificate\' | tee $ETCD_PEER_TRUSTED_CA_FILE'
 ExecStartPre=/opt/etcd/bin/etcd-get-cert peer
