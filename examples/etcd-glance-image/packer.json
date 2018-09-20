@@ -4,8 +4,8 @@
         "identity_endpoint": "{{env `OS_AUTH_URL`}}",
         "region": "{{env `OS_REGION_NAME`}}",
         "ext_net_id": "",
-        "module_cfssl_version": "0.1.9",
-        "module_cfssl_sha256sum": "60a77b08c2f74a43901bf442649db3963d24b0ef517ad27520eb3dd991a73ad8",
+        "module_cfssl_version": "0.1.10",
+        "module_cfssl_sha256sum": "8ec055b43ce4940fbc0437a9fdbaf4ede8ee8d0bbaaff967167d1dcf9da23674",
         "ssh_username": "core",
         "source_image_name": "CoreOS Stable"
     },
@@ -95,7 +95,7 @@
                 "/tmp/modules/install-etcd/install-etcd"
             ]
         },
-         {
+        {
             "type": "shell",
             "inline": [
                 "echo cleaning server files > /dev/stderr",

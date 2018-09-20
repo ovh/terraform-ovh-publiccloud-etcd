@@ -3,6 +3,7 @@
 readonly SCRIPT_FILE="$0"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_NAME="$(basename "$0")"
+INSTANCE_METADATA_URL="http://169.254.169.254/latest/meta-data"
 
 function log(){
     if ! tty -s; then logger -s -t "$CONSUL_SERVICE_NAME" -p "$@"; else echo "$@" >&2; fi;

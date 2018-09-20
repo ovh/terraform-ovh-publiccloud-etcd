@@ -175,7 +175,7 @@ resource "openstack_compute_instance_v2" "singlenet_etcd" {
 
 module "post_install_cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/install-cfssl"
-  version = ">= 0.1.3"
+  version = ">= 0.1.10"
 
   count                   = "${var.post_install_modules && var.cfssl && var.cfssl_endpoint == "" && var.count >= 1 ? 1 : 0}"
   triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id), 0)}"]

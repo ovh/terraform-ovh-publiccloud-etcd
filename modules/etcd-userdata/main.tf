@@ -41,13 +41,14 @@ ETCD_LISTEN_CLIENT_URLS=${local.scheme}://0.0.0.0:2379
 ETCD_ADVERTISE_CLIENT_URLS=${local.scheme}://${element(var.ipv4_addrs, count.index)}:2379
 ETCD_LISTEN_PEER_URLS=${local.scheme}://0.0.0.0:2380
 ETCD_TRUSTED_CA_FILE=${var.cfssl ? "/opt/etcd/certs/ca.pem" : ""}
-ETCD_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/cert.pem" : ""}
-ETCD_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/cert-key.pem" : ""}
+ETCD_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/peer.pem" : ""}
+ETCD_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/peer-key.pem" : ""}
 ETCD_CLIENT_CERT_AUTH=${var.cfssl ? "true" : "false"}
 ETCD_PEER_TRUSTED_CA_FILE=${var.cfssl ? "/opt/etcd/certs/ca.pem" : ""}
-ETCD_PEER_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/cert.pem" : ""}
-ETCD_PEER_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/cert-key.pem" : ""}
+ETCD_PEER_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/peer.pem" : ""}
+ETCD_PEER_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/peer-key.pem" : ""}
 ETCD_PEER_CLIENT_CERT_AUTH=${var.cfssl ? "true" : "false"}
+ETCD_PEER_CERT_ALLOWED_CN=${var.cfssl ? var.domain : ""}
 
 PRIVATE_NETWORK=${var.cidr}
 CFSSL_ENDPOINT=${var.cfssl_endpoint == "" ? module.cfssl.endpoint : var.cfssl_endpoint }

@@ -7,17 +7,16 @@ if [ -z "$CFSSL_ENDPOINT" ]; then
     exit 0
 fi
 
-if [ "$1" == "peer" ] && [ "ETCD_CERT_FILE" == "ETCD_PEER_CERT_FILE" ]; then
-    log user.info "client & peer tls certs target same files. skipping getting new cert for peer"
-    exit 0
-elif [ "$1" == "peer" ]; then
-    ca=${ETCD_PEER_TRUSTED_CA_FILE}
-    cert=${ETCD_PEER_CERT_FILE}
-    key=${ETCD_PEER_KEY_FILE}
+DIR=${ETCD_SSL_DIR:-$(pwd)}
+
+if [ "$1" == "peer" ]; then
+    ca=${ETCD_PEER_TRUSTED_CA_FILE:-${ETCD_TRUSTED_CA_FILE}}
+    cert=${ETCD_PEER_CERT_FILE:-${ETCD_CERT_FILE}}
+    key=${ETCD_PEER_KEY_FILE:-${ETCD_KEY_FILE}}
 else
     ca=${ETCD_TRUSTED_CA_FILE}
-    cert=${ETCD_CERT_FILE}
-    key=${ETCD_KEY_FILE}
+    cert=${DIR}/${1}.pem
+    key=${DIR}/${1}-key.pem
 fi
 
 if [ -z "${ETCD_NAME}" ]; then
@@ -28,9 +27,15 @@ fi
 if [ ! -f "${cert}" ] || find "${cert}" -mmin "+60" | egrep '*' \
        || ! openssl verify -purpose sslserver -CAfile "${ca}" "${cert}"; then
     log user.info "generating etcd new certs (either too old, no existent or invalid)"
-    certs_json=$(curl --cacert "${ca}" --connect-timeout 1 --silent --fail \
-                      -d '{ "request": {"hosts":["127.0.0.1", "localhost", "'$(getprivipaddr)'", "'${ETCD_NAME}'.etcd.'${DOMAIN}'", "etcd.'${DOMAIN}'"], "CN": "'${DOMAIN}'" },  "profile": "server"}'\
-                      "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
+    if [ "$1" == "peer" ]; then
+        certs_json=$(curl --cacert "${ca}" --connect-timeout 1 --silent --fail \
+                          -d '{ "request": {"hosts":["127.0.0.1", "localhost", "'$(getprivipaddr)'", "'${ETCD_NAME}'.etcd.'${DOMAIN}'", "etcd.'${DOMAIN}'"], "CN": "'${DOMAIN}'" },  "profile": "peer"}' \
+                          "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
+    else
+        certs_json=$(curl --cacert "${ca}" --connect-timeout 1 --silent --fail \
+                          -d '{ "request": {"hosts":[], "CN": "'${DOMAIN}'" },  "profile": "client"}' \
+                          "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
+    fi
 
     if echo "$certs_json" | jq -r '.result.certificate' | openssl verify -purpose sslserver -CAfile "${ca}" 2>/dev/null; then \
 
