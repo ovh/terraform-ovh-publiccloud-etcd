@@ -96,13 +96,6 @@ data "template_file" "private_ipv4_addrs" {
   template = "${element(flatten(openstack_networking_port_v2.port_etcd.*.all_fixed_ips), count.index)}"
 }
 
-# create anti affinity groups of 3 nodes
-resource "openstack_compute_servergroup_v2" "etcd" {
-  count    = "${var.count > 0 ? 1 + var.count / 3 : 0}"
-  name     = "${var.name}-${count.index}"
-  policies = ["anti-affinity"]
-}
-
 module "userdata" {
   source               = "./modules/etcd-userdata"
   count                = "${var.count}"
@@ -146,10 +139,6 @@ resource "openstack_compute_instance_v2" "multinet_etcd" {
     port           = "${element(openstack_networking_port_v2.public_port_etcd.*.id, count.index)}"
   }
 
-  scheduler_hints {
-    group = "${element(openstack_compute_servergroup_v2.etcd.*.id, count.index / 3 )}"
-  }
-
   metadata = "${var.metadata}"
 }
 
@@ -164,10 +153,6 @@ resource "openstack_compute_instance_v2" "singlenet_etcd" {
   network {
     access_network = true
     port           = "${element(coalescelist(openstack_networking_port_v2.public_port_etcd.*.id,openstack_networking_port_v2.port_etcd.*.id), count.index)}"
-  }
-
-  scheduler_hints {
-    group = "${element(openstack_compute_servergroup_v2.etcd.*.id, count.index / 3 )}"
   }
 
   metadata = "${var.metadata}"
