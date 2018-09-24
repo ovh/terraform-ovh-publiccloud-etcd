@@ -48,7 +48,7 @@ module "etcd" {
   count                     = "${var.count}"
   ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
   image_name                = "CoreOS Stable"
-  flavor_name               = "c2-7"
+  flavor_name               = "s1-2"
   ignition_mode             = true
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
   ssh_user                  = "core"
