@@ -1,8 +1,9 @@
 [Unit]
 Description=etcd (System Application Container)
 Documentation=https://github.com/coreos/etcd
-Wants=network-online.target network.target etcd-get-certs.service
-After=network-online.target
+Wants=network-online.target network.target
+Requires=etcd-get-certs.service
+After=network-online.target etcd-get-certs.service
 Conflicts=etcd-member.service
 Conflicts=etcd2.service
 

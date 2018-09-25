@@ -76,8 +76,8 @@ function setup_systemd_services {
     sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd-get-certs.service"
     sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd-get-certs.service"
 
-    sudo systemctl enable etcd.path etcd-get-certs.service etcd-restart.path
-    sudo systemctl start etcd.path etcd-restart.path
+    sudo systemctl enable etcd.path etcd-get-certs.service
+    sudo systemctl start etcd.path
 
     # disable firewalld. TODO: make a proper setup for etcd
     if systemctl list-unit-files --all | grep -q firewalld.service; then

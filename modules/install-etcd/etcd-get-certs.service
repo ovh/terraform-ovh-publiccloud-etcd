@@ -1,7 +1,8 @@
 [Unit]
 Description=Retrieves etcd tls certs from configured cfssl server
 PartOf=etcd.service
-Before=etcd.service
+Before=etcd.service etcd-restart.path
+Wants=etcd-restart.path
 
 [Service]
 User=etcd
