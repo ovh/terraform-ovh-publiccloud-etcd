@@ -67,16 +67,13 @@ function setup_systemd_services {
     local readonly username="$1"
     sudo cp "$SCRIPT_DIR/etcd.service" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/etcd.path" "/etc/systemd/system/"
-    sudo cp "$SCRIPT_DIR/etcd-get-certs.service" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/etcd-restart.service" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/etcd-restart.path" "/etc/systemd/system/"
 
     sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd.service"
     sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd.service"
-    sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd-get-certs.service"
-    sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd-get-certs.service"
 
-    sudo systemctl enable etcd.path etcd-get-certs.service
+    sudo systemctl enable etcd.path
     sudo systemctl start etcd.path
 
     # disable firewalld. TODO: make a proper setup for etcd

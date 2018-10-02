@@ -2,8 +2,7 @@
 Description=etcd (System Application Container)
 Documentation=https://github.com/coreos/etcd
 Wants=network-online.target network.target
-Requires=etcd-get-certs.service
-After=network-online.target etcd-get-certs.service
+After=network-online.target
 Conflicts=etcd-member.service
 Conflicts=etcd2.service
 
@@ -17,6 +16,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 Type=notify
 
+Environment=DOMAIN=local
 Environment=ETCD_NAME=etcd
 Environment=ETCD_SSL_DIR=/opt/etcd/certs
 Environment=ETCD_DATA_DIR=/opt/etcd/data
@@ -35,11 +35,16 @@ Environment=ETCD_PEER_TRUSTED_CA_FILE=
 Environment=ETCD_PEER_CERT_FILE=
 Environment=ETCD_PEER_KEY_FILE=
 Environment=ETCD_PEER_CLIENT_CERT_AUTH=false
+Environment=CFSSL_ENDPOINT=
 
 EnvironmentFile=/opt/etcd/bin/defaults.conf
 EnvironmentFile=/etc/sysconfig/etcd.conf
 
 ExecStartPre=/usr/bin/mkdir --parents ${ETCD_DATA_DIR}
+ExecStartPre=/usr/bin/mkdir --parents ${ETCD_SSL_DIR}
+ExecStartPre=/bin/sh -c 'if [ ! -z "$CFSSL_ENDPOINT" ]; then curl -k --fail --silent -XPOST -d \'{"label": "primary"}\' $CFSSL_ENDPOINT/api/v1/cfssl/info | jq -r \'.result.certificate\' | tee $ETCD_TRUSTED_CA_FILE; fi'
+ExecStartPre=/bin/sh -c 'if [ ! -z "$CFSSL_ENDPOINT" ]; then curl -k --fail --silent -XPOST -d \'{"label": "primary"}\' $CFSSL_ENDPOINT/api/v1/cfssl/info | jq -r \'.result.certificate\' | tee $ETCD_PEER_TRUSTED_CA_FILE; fi'
+ExecStartPre=/opt/etcd/bin/etcd-get-cert peer
 ExecStart=/opt/etcd/bin/etcd
 
 [Install]
