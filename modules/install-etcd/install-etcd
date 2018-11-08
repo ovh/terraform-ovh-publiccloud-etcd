@@ -77,7 +77,7 @@ function setup_systemd_services {
     else
         sudo sed -i -e s/%AFTER%/multi-user.target/g "/etc/systemd/system/etcd.service"
         sudo sed -i -e s/%WANTS%/multi-user.target/g "/etc/systemd/system/etcd.service"
-        sudo systemctl add-wants multi-user.target etcdservice
+        sudo systemctl add-wants multi-user.target etcd.service
     fi
 
     # disable firewalld. TODO: make a proper setup for etcd
