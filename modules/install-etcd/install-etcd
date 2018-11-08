@@ -66,20 +66,30 @@ function assert_not_empty {
 function setup_systemd_services {
     local readonly username="$1"
     sudo cp "$SCRIPT_DIR/etcd.service" "/etc/systemd/system/"
-    sudo cp "$SCRIPT_DIR/etcd.path" "/etc/systemd/system/"
-    sudo cp "$SCRIPT_DIR/etcd-restart.service" "/etc/systemd/system/"
-    sudo cp "$SCRIPT_DIR/etcd-restart.path" "/etc/systemd/system/"
 
     sudo sed -i -e s/User=etcd/User=$username/g "/etc/systemd/system/etcd.service"
     sudo sed -i -e "s,/opt/etcd,$path,g" "/etc/systemd/system/etcd.service"
 
-    sudo systemctl enable etcd.path
-    sudo systemctl start etcd.path
+    if [ -n "$(command -v apt-get)" ] && [ -n "$(command -v ubuntu-bug)" ]; then
+        sudo sed -i -e s/%AFTER%/cloud-init.target/g "/etc/systemd/system/etcd.service"
+        sudo sed -i -e s/%WANTS%/cloud-init.target/g "/etc/systemd/system/etcd.service"
+        sudo systemctl add-wants cloud-init.target etcd.service
+    else
+        sudo sed -i -e s/%AFTER%/multi-user.target/g "/etc/systemd/system/etcd.service"
+        sudo sed -i -e s/%WANTS%/multi-user.target/g "/etc/systemd/system/etcd.service"
+        sudo systemctl add-wants multi-user.target etcdservice
+    fi
 
     # disable firewalld. TODO: make a proper setup for etcd
     if systemctl list-unit-files --all | grep -q firewalld.service; then
         sudo systemctl stop firewalld
         sudo systemctl mask firewalld
+    fi
+
+    # disable coreos cl auto update
+    if systemctl list-unit-files --all | grep -q update-engine.service; then
+        sudo systemctl stop update-engine.service locksmithd.service
+        sudo systemctl mask update-engine.service locksmithd.service
     fi
 }
 

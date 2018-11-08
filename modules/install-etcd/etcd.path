@@ -1,5 +1,0 @@
-[Path]
-PathExists=/etc/sysconfig/etcd.conf
-
-[Install]
-WantedBy=multi-user.target

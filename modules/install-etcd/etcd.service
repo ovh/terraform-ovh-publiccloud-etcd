@@ -1,8 +1,9 @@
 [Unit]
 Description=etcd (System Application Container)
 Documentation=https://github.com/coreos/etcd
-Wants=network-online.target network.target
-After=network-online.target
+Wants=%WANTS%
+After=%AFTER%
+
 Conflicts=etcd-member.service
 Conflicts=etcd2.service
 
@@ -46,6 +47,3 @@ ExecStartPre=/bin/sh -c 'if [ ! -z "$CFSSL_ENDPOINT" ]; then curl -k --fail --si
 ExecStartPre=/bin/sh -c 'if [ ! -z "$CFSSL_ENDPOINT" ]; then curl -k --fail --silent -XPOST -d \'{"label": "primary"}\' $CFSSL_ENDPOINT/api/v1/cfssl/info | jq -r \'.result.certificate\' | tee $ETCD_PEER_TRUSTED_CA_FILE; fi'
 ExecStartPre=/opt/etcd/bin/etcd-get-cert peer
 ExecStart=/opt/etcd/bin/etcd
-
-[Install]
-WantedBy=multi-user.target
