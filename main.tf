@@ -29,33 +29,25 @@ resource "openstack_networking_secgroup_v2" "pub" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_etcd" {
-  count             = "${var.associate_public_ipv4 ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
   port_range_min    = "2379"
   port_range_max    = "2380"
   security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  remote_group_id   = "${openstack_networking_secgroup_v2.pub.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_cfssl" {
-  count             = "${var.associate_public_ipv4 && var.cfssl && var.cfssl_endpoint == "" ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 && var.cfssl && var.cfssl_endpoint == "" ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
   port_range_min    = "${var.cfssl_port}"
   port_range_max    = "${var.cfssl_port}"
   security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "egress-ipv4" {
-  count             = "${var.associate_public_ipv4 ? 1 : 0}"
-  direction         = "egress"
-  ethertype         = "IPv4"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
-  remote_ip_prefix  = "0.0.0.0/0"
+  remote_group_id   = "${openstack_networking_secgroup_v2.pub.id}"
 }
 
 resource "openstack_networking_port_v2" "public_port_etcd" {
@@ -112,13 +104,13 @@ module "userdata" {
 
   # if private ipv4 addrs are set, prefer them over public addrs;
   # they will notably be used to set etcd_initial_cluster attr.
-  ipv4_addrs           = ["${coalescelist(data.template_file.private_ipv4_addrs.*.rendered, data.template_file.public_ipv4_addrs.*.rendered)}"]
+  ipv4_addrs = ["${coalescelist(data.template_file.private_ipv4_addrs.*.rendered, data.template_file.public_ipv4_addrs.*.rendered)}"]
 
-  ssh_authorized_keys  = ["${var.ssh_authorized_keys}"]
-  cfssl_key_algo       = "${var.cfssl_key_algo}"
-  cfssl_key_size       = "${var.cfssl_key_size}"
-  cfssl_bind           = "${var.cfssl_bind}"
-  cfssl_port           = "${var.cfssl_port}"
+  ssh_authorized_keys = ["${var.ssh_authorized_keys}"]
+  cfssl_key_algo      = "${var.cfssl_key_algo}"
+  cfssl_key_size      = "${var.cfssl_key_size}"
+  cfssl_bind          = "${var.cfssl_bind}"
+  cfssl_port          = "${var.cfssl_port}"
 }
 
 resource "openstack_compute_instance_v2" "multinet_etcd" {
@@ -162,20 +154,20 @@ module "post_install_cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/install-cfssl"
   version = ">= 0.1.10"
 
-  count                   = "${var.post_install_modules && var.cfssl && var.cfssl_endpoint == "" && var.count >= 1 ? 1 : 0}"
-  triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id), 0)}"]
-  ipv4_addrs              = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4), 0)}"]
-  ssh_user                = "${var.ssh_user}"
-  ssh_bastion_host        = "${var.ssh_bastion_host}"
-  ssh_bastion_user        = "${var.ssh_bastion_user}"
+  count            = "${var.post_install_modules && var.cfssl && var.cfssl_endpoint == "" && var.count >= 1 ? 1 : 0}"
+  triggers         = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id), 0)}"]
+  ipv4_addrs       = ["${element(concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4), 0)}"]
+  ssh_user         = "${var.ssh_user}"
+  ssh_bastion_host = "${var.ssh_bastion_host}"
+  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 module "post_install_etcd" {
-  source                  = "./modules/install-etcd"
-  count                   = "${var.post_install_modules ? var.count : 0}"
-  triggers                = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id)}"]
-  ipv4_addrs              = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4)}"]
-  ssh_user                = "${var.ssh_user}"
-  ssh_bastion_host        = "${var.ssh_bastion_host}"
-  ssh_bastion_user        = "${var.ssh_bastion_user}"
+  source           = "./modules/install-etcd"
+  count            = "${var.post_install_modules ? var.count : 0}"
+  triggers         = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.id, openstack_compute_instance_v2.multinet_etcd.*.id)}"]
+  ipv4_addrs       = ["${concat(openstack_compute_instance_v2.singlenet_etcd.*.access_ip_v4, openstack_compute_instance_v2.multinet_etcd.*.access_ip_v4)}"]
+  ssh_user         = "${var.ssh_user}"
+  ssh_bastion_host = "${var.ssh_bastion_host}"
+  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
