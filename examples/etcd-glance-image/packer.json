@@ -5,7 +5,7 @@
         "region": "{{env `OS_REGION_NAME`}}",
         "ext_net_id": "",
         "module_cfssl_version": "0.1.13",
-        "module_cfssl_sha256sum": "06fe4586f268a6c1b46f0b416ada40ea80507a3af0c39d2b19d41b82d71c9f88",
+        "module_cfssl_sha256sum": "60a63b12bd127e0827a107e5c98205f3f554099772c79ba7378bfd6ed4845eb0",
         "ssh_username": "core",
         "source_image_name": "CoreOS Stable"
     },

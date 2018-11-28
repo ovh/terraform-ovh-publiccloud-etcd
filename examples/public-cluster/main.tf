@@ -1,8 +1,6 @@
 provider "openstack" {
   version   = "~> 1.2.0"
-  region    = "${var.os_region_name}"
-  tenant_id = "${var.os_tenant_id}"
-  auth_url  = "${var.os_auth_url}"
+  region    = "${var.region}"
 }
 
 provider "local" {
@@ -50,7 +48,7 @@ module "etcd" {
   count                     = "${var.count}"
   ssh_authorized_keys       = ["${file(var.public_sshkey)}"]
   image_name                = "Centos 7"
-  flavor_name               = "${var.os_flavor_name}"
+  flavor_name               = "${var.flavor_name}"
   ignition_mode             = false
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
   ssh_user                  = "centos"
