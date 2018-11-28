@@ -101,13 +101,13 @@ function install_dependencies {
       # ncat to test tcp connections
       # bind-utils to test dns names
       # jq to play with json
-      sudo yum install -y curl jq
+      sudo yum install -y curl jq rng-tools
   elif [ -n "$(command -v apt-get)" ] && [ -n "$(command -v ubuntu-bug)" ]; then
       log_info "Ubuntu based. upgrading system."
       # fix journald upgrade
       export DEBIAN_FRONTEND=noninteractive
       sudo -E apt update -y -q
-      sudo -E apt install -y -q jq
+      sudo -E apt install -y -q jq rng-tools
       log_info "Ubuntu based. make links for cross compatibility"
       sudo ln -fs /bin/mkdir /usr/bin/mkdir
       sudo ln -fs /bin/systemctl /usr/bin/systemctl

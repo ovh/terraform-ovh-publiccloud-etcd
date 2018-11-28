@@ -1,6 +1,9 @@
 [Unit]
 Description=etcd (System Application Container)
 Documentation=https://github.com/coreos/etcd
+Wants=rngd.service rng-tools.service
+After=rngd.service rng-tools.service
+
 Wants=%WANTS%
 After=%AFTER%
 
