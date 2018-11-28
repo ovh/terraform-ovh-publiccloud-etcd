@@ -1,5 +1,5 @@
 locals {
-  getcert_command= "CFSSL_ENDPOINT=${module.etcd.cfssl_endpoint} ETCD_TRUSTED_CA_FILE=/opt/etcd/certs/ca.pem /opt/etcd/bin/etcd-get-cert test"
+  getcert_command= "CFSSL_ENDPOINT=${module.etcd.cfssl_endpoint} ETCD_TRUSTED_CA_FILE=/opt/etcd/certs/ca.pem /opt/etcd/bin/etcd-get-cert test sslclient"
   test_command =  "/opt/etcd/bin/etcdctl --ca-file /opt/etcd/certs/ca.pem --cert-file ./test.pem --key-file ./test-key.pem --endpoints https://${module.etcd.public_ipv4_addrs[0]}:2379 member list"
 }
 

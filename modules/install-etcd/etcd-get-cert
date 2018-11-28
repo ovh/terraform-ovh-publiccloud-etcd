@@ -2,6 +2,8 @@
 # shellcheck source=/dev/null
 source "$(dirname "$0")/functions.sh"
 
+purpose="${2:-sslserver}"
+
 if [ -z "$CFSSL_ENDPOINT" ]; then
     log user.info "no cfssl endpoint set. cannot get certs. nothing to do"
     exit 0
@@ -25,7 +27,7 @@ fi
 
 # generating new tls certs if there's no certs or existing certs are invalid or older than one hour."
 if [ ! -f "${cert}" ] || [ ! -f "${key}" ] || find "${cert}" -mmin "+60" | egrep '*' \
-       || ! openssl verify -purpose sslserver -CAfile "${ca}" "${cert}"; then
+       || ! openssl verify -purpose "${purpose}" -CAfile "${ca}" "${cert}"; then
     log user.info "generating etcd new certs (either too old, no existent or invalid)"
     if [ "$1" == "peer" ]; then
         certs_json=$(curl --cacert "${ca}" --connect-timeout 1 --silent --fail \
@@ -37,7 +39,7 @@ if [ ! -f "${cert}" ] || [ ! -f "${key}" ] || find "${cert}" -mmin "+60" | egrep
                           "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
     fi
 
-    if echo "$certs_json" | jq -r '.result.certificate' | openssl verify -purpose sslserver -CAfile "${ca}" 2>/dev/null; then \
+    if echo "$certs_json" | jq -r '.result.certificate' | openssl verify -purpose "${purpose}" -CAfile "${ca}" 2>/dev/null; then \
         # generating files in temp dir before copying it because a watcher on the directory ETCD_SSL_DIR may interrupt the current process
         certs_dir_temp=$(mktemp -d)
         echo "$certs_json" | jq -r '.result.certificate' > "${certs_dir_temp}"/"$(basename "$cert")"
