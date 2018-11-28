@@ -4,8 +4,8 @@
         "identity_endpoint": "{{env `OS_AUTH_URL`}}",
         "region": "{{env `OS_REGION_NAME`}}",
         "ext_net_id": "",
-        "module_cfssl_version": "0.1.11",
-        "module_cfssl_sha256sum": "802a008b44982d1bef4294b870b518cbca62cc36aba2be78f67f1a913160bd40",
+        "module_cfssl_version": "0.1.12",
+        "module_cfssl_sha256sum": "03ad4816488c1e998f78bc9b74254fe1d031e94f1e6daac0f53cbbeaa788c693",
         "ssh_username": "core",
         "source_image_name": "CoreOS Stable"
     },
