@@ -1,5 +1,6 @@
 locals {
-  scheme = "${var.cfssl ? "https" : "http"}"
+  scheme      = "${local.tls_enabled ? "https" : "http"}"
+  tls_enabled = "${ var.cfssl || var.cfssl_endpoint != "" ? true : false}"
 }
 
 module "cfssl" {
@@ -40,15 +41,15 @@ ETCD_INITIAL_ADVERTISE_PEER_URLS=${local.scheme}://${element(var.ipv4_addrs, cou
 ETCD_LISTEN_CLIENT_URLS=${local.scheme}://0.0.0.0:2379
 ETCD_ADVERTISE_CLIENT_URLS=${local.scheme}://${element(var.ipv4_addrs, count.index)}:2379
 ETCD_LISTEN_PEER_URLS=${local.scheme}://0.0.0.0:2380
-ETCD_TRUSTED_CA_FILE=${var.cfssl ? "/opt/etcd/certs/ca.pem" : ""}
-ETCD_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/peer.pem" : ""}
-ETCD_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/peer-key.pem" : ""}
-ETCD_CLIENT_CERT_AUTH=${var.cfssl ? "true" : "false"}
-ETCD_PEER_TRUSTED_CA_FILE=${var.cfssl ? "/opt/etcd/certs/ca.pem" : ""}
-ETCD_PEER_CERT_FILE=${var.cfssl ? "/opt/etcd/certs/peer.pem" : ""}
-ETCD_PEER_KEY_FILE=${var.cfssl ? "/opt/etcd/certs/peer-key.pem" : ""}
-ETCD_PEER_CLIENT_CERT_AUTH=${var.cfssl ? "true" : "false"}
-ETCD_PEER_CERT_ALLOWED_CN=${var.cfssl ? var.domain : ""}
+ETCD_TRUSTED_CA_FILE=${local.tls_enabled ? "/opt/etcd/certs/ca.pem" : ""}
+ETCD_CERT_FILE=${local.tls_enabled ? "/opt/etcd/certs/peer.pem" : ""}
+ETCD_KEY_FILE=${local.tls_enabled ? "/opt/etcd/certs/peer-key.pem" : ""}
+ETCD_CLIENT_CERT_AUTH=${local.tls_enabled ? "true" : "false"}
+ETCD_PEER_TRUSTED_CA_FILE=${local.tls_enabled ? "/opt/etcd/certs/ca.pem" : ""}
+ETCD_PEER_CERT_FILE=${local.tls_enabled ? "/opt/etcd/certs/peer.pem" : ""}
+ETCD_PEER_KEY_FILE=${local.tls_enabled ? "/opt/etcd/certs/peer-key.pem" : ""}
+ETCD_PEER_CLIENT_CERT_AUTH=${local.tls_enabled ? "true" : "false"}
+ETCD_PEER_CERT_ALLOWED_CN=${local.tls_enabled ? var.domain : ""}
 
 PRIVATE_NETWORK=${var.cidr}
 CFSSL_ENDPOINT=${var.cfssl_endpoint == "" ? module.cfssl.endpoint : var.cfssl_endpoint }

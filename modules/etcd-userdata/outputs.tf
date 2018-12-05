@@ -20,5 +20,5 @@ output "etcd_endpoints" {
 
 output "cfssl_endpoint" {
   description = "The cfssl endpoint"
-  value = "${module.cfssl.endpoint}"
+  value       = "${var.cfssl_endpoint == "" ? (var.cfssl ? module.cfssl.endpoint : "") : var.cfssl_endpoint}"
 }
